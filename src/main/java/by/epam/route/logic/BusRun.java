@@ -15,9 +15,9 @@ public class BusRun implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run() { // коллекции в гет/сет выдавать синхронизировано
         try {
-            Lock locker = new ReentrantLock();
+            Lock locker = new ReentrantLock(); // новый локер для каждого потока - не работает
             for (BusStop i : bus.getRoute()) {
                 i.getSemaphore().acquire();
                 System.out.println("Semaphore acquired");
