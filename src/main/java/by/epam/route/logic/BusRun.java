@@ -4,8 +4,6 @@ import by.epam.route.bean.Bus;
 import by.epam.route.bean.BusStop;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class BusRun implements Runnable {
     private Bus bus;
@@ -15,34 +13,29 @@ public class BusRun implements Runnable {
     }
 
     @Override
-    public void run() { // коллекции в гет/сет выдавать синхронизировано
+    public void run() {
         try {
-            Lock locker = new ReentrantLock(); // новый локер для каждого потока - не работает
-            for (BusStop i : bus.getRoute()) {
-                i.getSemaphore().acquire();
+            for (BusStop busStop : bus.getRoute()) {
+                busStop.getSemaphore().acquire();
                 System.out.println("Semaphore acquired");
-                i.setBus(bus);
+                busStop.setBus(bus);
 
-                locker.lock();
-                List stopList = i.getPassengers();
-                List busList = bus.getPassengers();
                 if(!bus.getPassengers().isEmpty()){
-                    stopList.addAll(bus.getPassengers().subList(0, 4));
-                    i.setPassengers(stopList);
-                    busList.removeAll(stopList);
-                    bus.setPassengers(busList);
+                    busStop.addPassengers(bus.getPassengers().subList(0, 4));
+                    bus.removePassengers(busStop.getPassengers());
                 }
-                busList.addAll(i.getPassengers().subList(0, 8));
-                if(bus.getCapacity() >= busList.size()) {
-                    bus.setPassengers(busList);
-
-                    stopList.removeAll(busList);
-                    i.setPassengers(stopList);
+                int busFill = bus.getPassengers().size() - bus.getCapacity();
+                if(busFill >= 8){
+                    bus.addPassengers(busStop.getPassengers().subList(0, 8));
+                    busStop.removePassengers(bus.getPassengers());
                 }
-                locker.unlock();
+                else if(busFill > 0){
+                    bus.addPassengers(busStop.getPassengers().subList(0, busFill));
+                    busStop.removePassengers(bus.getPassengers());
+                }
 
-                i.getBuses().remove(bus);
-                i.getSemaphore().release();
+                busStop.getBuses().remove(bus);
+                busStop.getSemaphore().release();
                 System.out.println("Semaphore released");
                 System.out.println();
             }

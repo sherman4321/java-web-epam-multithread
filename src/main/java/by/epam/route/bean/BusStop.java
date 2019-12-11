@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class BusStop {
     private Semaphore semaphore;
     private final int maxBuses;
     private List<Passenger> passengers;
     private List<Bus> buses;
+    private Lock locker = new ReentrantLock();
+
 
     public BusStop() {
         maxBuses = 3;
@@ -68,7 +72,25 @@ public class BusStop {
     }
 
     public void setPassengers(List<Passenger> passengers) {
+        locker.lock();
         this.passengers = new ArrayList<>(passengers);
+        locker.unlock();
+    }
+
+    public void removePassengers(List<Passenger> passengers) {
+        locker.lock();
+        List<Passenger> temp = this.getPassengers();
+        temp.removeAll(passengers);
+        this.passengers = temp;
+        locker.unlock();
+    }
+
+    public void addPassengers(List<Passenger> passengers) {
+        locker.lock();
+        List<Passenger> temp = this.getPassengers();
+        temp.addAll(passengers);
+        this.passengers = temp;
+        locker.unlock();
     }
 
     public Bus getBus(int index) {
@@ -86,6 +108,7 @@ public class BusStop {
     public void setBuses(List<Bus> buses) {
         this.buses = new ArrayList<>(buses);
     }
+
 
     public Semaphore getSemaphore() {
         return semaphore;

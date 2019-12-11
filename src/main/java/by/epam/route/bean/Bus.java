@@ -71,6 +71,18 @@ public class Bus {
         this.passengers = new ArrayList<>(passengers);
     }
 
+    public void addPassengers(List<Passenger> passengers) {
+        List<Passenger> temp = this.getPassengers();
+        temp.addAll(passengers);
+        this.passengers = temp;
+    }
+
+    public void removePassengers(List<Passenger> passengers) {
+        List<Passenger> temp = this.getPassengers();
+        temp.removeAll(passengers);
+        this.passengers = temp;
+    }
+
     public BusStop getStop(int index) {
         return route.get(index);
     }
